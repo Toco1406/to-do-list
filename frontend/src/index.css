@@ -1,0 +1,60 @@
+:root {
+  font-family: Arial, sans-serif;
+  color: #1f2937;
+  background: #f8fafc;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+.layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.header,
+.footer {
+  padding: 1rem clamp(1.25rem, 5vw, 4rem);
+  background: #1e3a5f;
+  color: white;
+}
+
+.header p {
+  margin: 0;
+  font-weight: 700;
+}
+
+.content {
+  width: min(100% - 2.5rem, 72rem);
+  margin: 0 auto;
+  flex: 1;
+  display: grid;
+  place-items: center;
+}
+
+.home {
+  width: 100%;
+  padding: 3rem 0;
+}
+
+.home h1 {
+  margin: 0 0 1rem;
+  font-size: clamp(2rem, 6vw, 3.5rem);
+}
+
+.home p {
+  margin: 0;
+  font-size: 1.125rem;
+  line-height: 1.6;
+}
+
+.footer {
+  text-align: center;
+  font-size: 0.875rem;
+}
