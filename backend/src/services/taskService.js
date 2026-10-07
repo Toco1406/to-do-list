@@ -14,3 +14,13 @@ export function createTask(ownerId, data) {
 export function getTaskById(ownerId, id) {
     return Task.findOne({ _id: id, ownerId })
 }
+
+export function updateTaskById(ownerId, taskId, updates) {
+  const filter = {_id: taskId, ownerId};
+  return Task.findOneAndUpdate(filter, updates, { returnDocument: 'after', runValidators: true })
+}
+
+export function deleteTaskById(ownerId, taskId) {
+  const filter = { _id: taskId, ownerId };
+  return Task.findOneAndDelete(filter)
+}
