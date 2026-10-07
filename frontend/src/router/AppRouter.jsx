@@ -1,27 +1,21 @@
-import React from 'react';
+import React from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Home from "../pages/Home.jsx";
-import LoginPage from "../pages/loginPage.jsx";
-import RegisterPage from "../pages/registerPage.jsx";
+import LoginPage from "../pages/AuthPage.jsx";
+import TasksPage from "../pages/TasksPage.jsx";
 
 const router = createBrowserRouter([
   {
     path: "/",
-    children: [
-      { index: true, element: <Home /> },
-    ],
+    children: [{ index: true, element: <Home /> }],
   },
-    {
-    path: "/login",
-    children: [
-      { index: true, element: <LoginPage /> },
-    ],
+  {
+    path: "/auth",
+    children: [{ index: true, element: <LoginPage /> }],
   },
-      {
-    path: "/register",
-    children: [
-      { index: true, element: <RegisterPage /> },
-    ],
+  {
+    path: "/tasks",
+    children: [{ index: true, element: <TasksPage /> }],
   },
 ]);
 
