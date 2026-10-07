@@ -1,10 +1,10 @@
 import Layout from './components/Layout.jsx';
-import Home from './pages/Home.jsx';
+import AppRouter from './router/AppRouter.jsx';
 
 export default function App() {
   return (
     <Layout>
-      <Home />
+      <AppRouter />
     </Layout>
   );
 }
