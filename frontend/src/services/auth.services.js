@@ -35,7 +35,7 @@ export function authLogin(loginForm) {
 }
 
 export async function authLogout() {
-  const res = await fetch(`${BASE_URL}/auth/logout`, {
+  const res = await fetch(`${BASE_URL}/logout`, {
     method: "POST",
     credentials: "include",
   })
