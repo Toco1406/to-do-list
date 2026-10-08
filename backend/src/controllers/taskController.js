@@ -4,7 +4,7 @@ import * as taskService from '../services/taskService.js'
 const ALLOWED_FIELDS = ['title', 'description', 'status', 'deadline']
 
 export async function getAllTasks(request, response) {
-    const tasks = await taskService.listTasks(request.userId)
+    const tasks = await taskService.listTasks(request.user.id)
     return response.status(200).json({ message: "Todos récupérées : ", tasks: tasks })
 }
 
@@ -38,7 +38,7 @@ export async function updateTask(request, response) {
 
     let task
     try {
-        task = await taskService.updateTaskById(request.userId, request.params.id, updates)
+        task = await taskService.updateTaskById(request.user.id, request.params.id, updates)
     } catch (error) {
         if (error.name === 'ValidationError' || error.name === 'CastError') {
             return response.status(400).json({ error: 'INVALID_INPUT' })
@@ -59,7 +59,7 @@ export async function deleteTask(request, response) {
         return response.status(400).json({ error: 'INVALID_INPUT' })
     }
 
-    const task = await taskService.deleteTaskById(request.userId, request.params.id)
+    const task = await taskService.deleteTaskById(request.user.id, request.params.id)
 
     if (!task) {
         return response.status(404).json({ error: 'NOT_FOUND' })

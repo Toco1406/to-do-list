@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { authLogout, authMe } from "../services/api";
+import { authLogout, authMe } from "../services/auth.services.js";
 
 export default function Header() {
   const [loggedIn, setLoggedIn] = useState(false);

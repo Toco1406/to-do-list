@@ -1,7 +1,8 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import EditModal from "./EditModal";
 import ViewModal from "./ViewModal";
 import "../CSS/TasksPage.css";
+import { getMyTasks } from "../services/tasks.services.js";
 
 export const STATUSES = ["Todo", "Doing", "Done"];
 export const PRIORITIES = ["Low", "Medium", "High", "Urgent"];
@@ -64,6 +65,12 @@ export default function Tasks() {
   const DoneTasks = tasks.filter((task) => task.status === "Done").length;
   const doingTasks = tasks.filter((task) => task.status === "Doing").length;
   const todoTasks = tasks.filter((task) => task.status === "Todo").length;
+
+  useEffect(() => {
+    getMyTasks().then((data) => {
+      setTasks(data.items);
+    });
+  }, []);
 
   const progress = tasks.length
     ? Math.round((DoneTasks / tasks.length) * 100)

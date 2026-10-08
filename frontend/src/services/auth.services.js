@@ -1,4 +1,4 @@
-const BASE_URL = "http://localhost:3000/api"
+const BASE_URL = "http://localhost:3000/api/auth"
 
 const jsonPost = (path, body) =>
   fetch(`${BASE_URL}${path}`, {
@@ -12,7 +12,7 @@ const jsonPost = (path, body) =>
 const notifyAuthChange = () => window.dispatchEvent(new Event("auth-change"))
 
 export function authRegister(registerForm) {
-  return fetch(`${BASE_URL}/auth/register`, {
+  return fetch(`${BASE_URL}/register`, {
     method: "POST",
     credentials: 'include',
     headers: {
@@ -24,7 +24,7 @@ export function authRegister(registerForm) {
 
 export function authLogin(loginForm) {
   console.log(loginForm)
-  return fetch(`${BASE_URL}/auth/login`, {
+  return fetch(`${BASE_URL}/login`, {
     method: "POST",
     credentials: 'include',
     headers: {

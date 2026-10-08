@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import "../CSS/AuthCard.css";
-import { authRegister, authLogin } from "../services/api";
+import { authRegister, authLogin } from "../services/auth.services.js";
 import { useNavigate } from "react-router-dom";
 
 const INITIAL_LOGIN = {
