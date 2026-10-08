@@ -5,6 +5,8 @@ import { config } from './config/env.js';
 import { taskRouter } from './routes/taskRoutes.js';
 import cookieParser from "cookie-parser";
 import {authRouter} from "./routes/auth.routes.js";
+import swaggerUi from 'swagger-ui-express';
+import { swaggerSpec } from './docs/swagger.js';
 
 const app = express();
 
@@ -22,6 +24,8 @@ app.get('/', (_request, response) => {
 app.get('/api/health', (_request, response) => {
   response.status(200).json({ status: 'ok' });
 });
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.use('/api/tasks', taskRouter);
 

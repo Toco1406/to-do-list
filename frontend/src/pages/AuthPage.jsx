@@ -131,7 +131,12 @@ function AuthCard() {
 
     try {
       // Replace this timeout with your real API request.
-      mode === "register" ? await authRegister(registerForm) : await authLogin(loginForm);
+      const res = mode === "register" ? await authRegister(registerForm) : await authLogin(loginForm);
+
+      if(!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || "Something went wrong. Please try again.");
+      }
 
       setFeedback({
         type: "success",

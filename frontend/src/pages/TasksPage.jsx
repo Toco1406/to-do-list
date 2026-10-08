@@ -1,8 +1,10 @@
 import { useMemo, useState } from "react";
+import EditModal from "./EditModal";
+import ViewModal from "./ViewModal";
 import "../CSS/TasksPage.css";
 
-const STATUSES = ["Todo", "Doing", "Done"];
-const PRIORITIES = ["Low", "Medium", "High", "Urgent"];
+export const STATUSES = ["Todo", "Doing", "Done"];
+export const PRIORITIES = ["Low", "Medium", "High", "Urgent"];
 
 const INITIAL_TASKS = [
   {
@@ -58,10 +60,9 @@ export default function Tasks() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [sortBy, setSortBy] = useState("created");
+
   const DoneTasks = tasks.filter((task) => task.status === "Done").length;
-
   const doingTasks = tasks.filter((task) => task.status === "Doing").length;
-
   const todoTasks = tasks.filter((task) => task.status === "Todo").length;
 
   const progress = tasks.length
@@ -74,12 +75,12 @@ export default function Tasks() {
 
       const matchesSearch =
         task.title.toLowerCase().includes(searchValue) ||
-        task.details.toLowerCase().includes(searchValue);
+        (task.details && task.details.toLowerCase().includes(searchValue));
 
       const matchesStatus =
         statusFilter === "All" || task.status === statusFilter;
 
-      return matchesSearch && matchesStatus ;
+      return matchesSearch && matchesStatus;
     });
 
     return [...result].sort((a, b) => {
@@ -95,7 +96,6 @@ export default function Tasks() {
     });
   }, [tasks, search, statusFilter, sortBy]);
 
-
   const openAddModal = () => {
     setForm(EMPTY_FORM);
     setModal({ type: "add" });
@@ -104,8 +104,9 @@ export default function Tasks() {
   const openEditModal = (task) => {
     setForm({
       title: task.title,
-      details: task.details,
+      details: task.details || "",
       status: task.status,
+      dueDate: task.dueDate || "",
     });
 
     setModal({
@@ -171,53 +172,27 @@ export default function Tasks() {
     setStatusFilter("All");
   };
 
-  const formatDate = (date) => {
-    if (!date) return "No due date";
-
-    return new Date(`${date}T00:00:00`).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
-  };
-
-  const isOverdue = (task) => {
-    if (!task.dueDate || task.status === "Done") return false;
-
-    return new Date(`${task.dueDate}T23:59:59`) < new Date();
-  };
+  const activeTask = modal?.id ? tasks.find((t) => t.id === modal.id) : null;
 
   return (
     <div className="dashboard">
-      {/* ================================================
-          MAIN CONTENT
-      ================================================= */}
-
       <main className="main">
-        {/* CONTENT */}
-
         <div className="content">
-          {/* PAGE HEADER */}
-
           <section className="page-header">
             <div>
               <span className="eyebrow">MY WORKSPACE</span>
-
               <h1>Tasks</h1>
-
               <p>Manage your work, track progress and stay organized.</p>
             </div>
 
             <button className="primary-button" onClick={openAddModal}>
-              <span>+</span>
-              New task
+              <span>+</span> New task
             </button>
           </section>
 
           <section className="stats-grid">
             <div className="stat-card">
               <div className="stat-icon blue">✓</div>
-
               <div>
                 <span>Total tasks</span>
                 <strong>{tasks.length}</strong>
@@ -227,7 +202,6 @@ export default function Tasks() {
 
             <div className="stat-card">
               <div className="stat-icon purple">◷</div>
-
               <div>
                 <span>Doing</span>
                 <strong>{doingTasks}</strong>
@@ -237,7 +211,6 @@ export default function Tasks() {
 
             <div className="stat-card">
               <div className="stat-icon green">✓</div>
-
               <div>
                 <span>Done</span>
                 <strong>{DoneTasks}</strong>
@@ -250,13 +223,11 @@ export default function Tasks() {
             <div className="tasks-toolbar">
               <div className="search-wrapper">
                 <span>⌕</span>
-
                 <input
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
                   placeholder="Search tasks..."
                 />
-
                 {search && (
                   <button
                     onClick={() => setSearch("")}
@@ -273,7 +244,6 @@ export default function Tasks() {
                   onChange={(event) => setStatusFilter(event.target.value)}
                 >
                   <option value="All">All statuses</option>
-
                   {STATUSES.map((status) => (
                     <option key={status} value={status}>
                       {status}
@@ -312,7 +282,6 @@ export default function Tasks() {
 
                     <div className="task-information">
                       <strong>{task.title}</strong>
-
                       {task.details && <span>{task.details}</span>}
                     </div>
                   </div>
@@ -359,11 +328,8 @@ export default function Tasks() {
               {filteredTasks.length === 0 && (
                 <div className="empty-state">
                   <div className="empty-icon">✓</div>
-
                   <h3>No tasks found</h3>
-
                   <p>Try changing your filters or create a new task.</p>
-
                   <button className="primary-button" onClick={openAddModal}>
                     + Create task
                   </button>
@@ -374,210 +340,31 @@ export default function Tasks() {
         </div>
       </main>
 
-      {/* ================================================
-          MODAL
-      ================================================= */}
-
       {modal && (
         <div className="modal-overlay" onClick={() => setModal(null)}>
           <div
             className="task-modal"
             onClick={(event) => event.stopPropagation()}
           >
-            {/* ADD / EDIT */}
-
             {(modal.type === "add" || modal.type === "edit") && (
-              <form onSubmit={saveTask}>
-                <div className="modal-header">
-                  <div>
-                    <span className="eyebrow">
-                      {modal.type === "add" ? "NEW TASK" : "EDIT TASK"}
-                    </span>
-
-                    <h2>
-                      {modal.type === "add" ? "Create a new task" : "Edit task"}
-                    </h2>
-                  </div>
-
-                  <button
-                    type="button"
-                    className="modal-close"
-                    onClick={() => setModal(null)}
-                  >
-                    ×
-                  </button>
-                </div>
-
-                <div className="modal-body">
-                  <label>
-                    Task title
-                    <input
-                      autoFocus
-                      value={form.title}
-                      onChange={(event) =>
-                        setForm({
-                          ...form,
-                          title: event.target.value,
-                        })
-                      }
-                      placeholder="What needs to be done?"
-                    />
-                  </label>
-
-                  <label>
-                    Description
-                    <textarea
-                      rows="4"
-                      value={form.details}
-                      onChange={(event) =>
-                        setForm({
-                          ...form,
-                          details: event.target.value,
-                        })
-                      }
-                      placeholder="Add some details..."
-                    />
-                  </label>
-
-                  <div className="form-grid">
-                    <label>
-                      Status
-                      <select
-                        value={form.status}
-                        onChange={(event) =>
-                          setForm({
-                            ...form,
-                            status: event.target.value,
-                          })
-                        }
-                      >
-                        {STATUSES.map((status) => (
-                          <option key={status} value={status}>
-                            {status}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                  </div>
-
-                  <label>
-                    Due date
-                    <input
-                      type="date"
-                      value={form.dueDate}
-                      onChange={(event) =>
-                        setForm({
-                          ...form,
-                          dueDate: event.target.value,
-                        })
-                      }
-                    />
-                  </label>
-                </div>
-
-                <div className="modal-footer">
-                  <button
-                    type="button"
-                    className="secondary-button"
-                    onClick={() => setModal(null)}
-                  >
-                    Cancel
-                  </button>
-
-                  <button type="submit" className="primary-button">
-                    {modal.type === "add" ? "Create task" : "Save changes"}
-                  </button>
-                </div>
-              </form>
+              <EditModal
+                modal={modal}
+                form={form}
+                setForm={setForm}
+                saveTask={saveTask}
+                onClose={() => setModal(null)}
+              />
             )}
 
-            {/* VIEW */}
-
-            {modal.type === "view" &&
-              (() => {
-                const task = tasks.find((item) => item.id === modal.id);
-
-                if (!task) return null;
-
-                return (
-                  <div>
-                    <div className="modal-header">
-                      <div className="view-header">
-                        <h2>{task.title}</h2>
-                      </div>
-
-                      <button
-                        className="modal-close"
-                        onClick={() => setModal(null)}
-                      >
-                        ×
-                      </button>
-                    </div>
-
-                    <div className="view-content">
-                      <div className="view-status-row">
-                        <span>Status</span>
-
-                        <select
-                          value={task.status}
-                          onChange={(event) =>
-                            updateStatus(task.id, event.target.value)
-                          }
-                        >
-                          {STATUSES.map((status) => (
-                            <option key={status} value={status}>
-                              {status}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
-                      <div className="view-section">
-                        <span>Description</span>
-
-                        <p>{task.details || "No description provided."}</p>
-                      </div>
-
-                      <div className="view-meta">
-                        <div>
-                          <span>Due date</span>
-                          <strong>{formatDate(task.dueDate)}</strong>
-                        </div>
-
-                        <div>
-                          <span>Created</span>
-                          <strong>{formatDate(task.createdAt)}</strong>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="modal-footer">
-                      <button
-                        className="danger-button"
-                        onClick={() => deleteTask(task.id)}
-                      >
-                        Delete task
-                      </button>
-
-                      <div>
-                        <button
-                          className="secondary-button"
-                          onClick={() => openEditModal(task)}
-                        >
-                          Edit
-                        </button>
-
-                        <button
-                          className="primary-button"
-                          onClick={() => setModal(null)}
-                        >
-                          Close
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })()}
+            {modal.type === "view" && activeTask && (
+              <ViewModal
+                task={activeTask}
+                updateStatus={updateStatus}
+                deleteTask={deleteTask}
+                openEditModal={openEditModal}
+                onClose={() => setModal(null)}
+              />
+            )}
           </div>
         </div>
       )}

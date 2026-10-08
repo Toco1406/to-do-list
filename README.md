@@ -158,6 +158,5 @@ Test actuel : `GET /api/health` doit renvoyer le statut 200 et `{ status: "ok" }
 
 - Le front n'est pas encore connecté à l'API : les pages d'authentification et de tâches fonctionnent avec des données locales simulées.
 - Couverture de tests à étendre : routes d'auth, accès sans token (401), isolation des tâches entre utilisateurs, validation des entrées.
-- Pas de documentation Swagger/OpenAPI pour l'instant.
 - Gestion d'erreurs à centraliser dans un middleware Express.
 - Validation des entrées d'authentification à renforcer côté serveur (format de l'email, longueur du mot de passe).
