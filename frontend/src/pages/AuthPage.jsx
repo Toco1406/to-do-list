@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import "../CSS/AuthCard.css";
+import { authRegister, authLogin } from "../services/api";
+import { useNavigate } from "react-router-dom";
 
 const INITIAL_LOGIN = {
-  identifier: "",
+  email: "",
   password: "",
 };
 
@@ -16,6 +18,8 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function AuthCard() {
   const [mode, setMode] = useState("login");
+
+  const navigate = useNavigate();
 
   // Form state
   const [loginForm, setLoginForm] = useState(INITIAL_LOGIN);
@@ -65,19 +69,19 @@ function AuthCard() {
   const validateLogin = () => {
     const newErrors = {};
 
-    if (!loginForm.identifier.trim()) {
-      newErrors.identifier = "Email is required.";
+    if (!loginForm.email.trim()) {
+      newErrors.email = "Email is required.";
     } else if (
-      loginForm.identifier.includes("@") &&
-      !EMAIL_REGEX.test(loginForm.identifier)
+      loginForm.email.includes("@") &&
+      !EMAIL_REGEX.test(loginForm.email)
     ) {
-      newErrors.identifier = "Please enter a valid email address.";
+      newErrors.email = "Please enter a valid email address.";
     }
 
     if (!loginForm.password) {
       newErrors.password = "Password is required.";
-    } else if (loginForm.password.length < 8) {
-      newErrors.password = "Password must contain at least 8 characters.";
+    } else if (loginForm.password.length < 4) {
+      newErrors.password = "Password must contain at least 4 characters.";
     }
 
     return newErrors;
@@ -99,8 +103,8 @@ function AuthCard() {
 
     if (!registerForm.password) {
       newErrors.password = "Password is required.";
-    } else if (registerForm.password.length < 8) {
-      newErrors.password = "Password must contain at least 8 characters.";
+    } else if (registerForm.password.length < 4) {
+      newErrors.password = "Password must contain at least 4 characters.";
     }
 
     if (!registerForm.confirmPassword) {
@@ -135,7 +139,7 @@ function AuthCard() {
 
     try {
       // Replace this timeout with your real API request.
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      mode === "register" ? await authRegister(registerForm) : await authLogin(loginForm);
 
       setFeedback({
         type: "success",
@@ -150,6 +154,8 @@ function AuthCard() {
       } else {
         setLoginForm(INITIAL_LOGIN);
       }
+
+      navigate("/tasks");
     } catch (error) {
       setFeedback({
         type: "error",
@@ -222,27 +228,27 @@ function AuthCard() {
         {mode === "login" && (
           <form className="auth-form" onSubmit={handleSubmit} noValidate>
             <div className="form-group">
-              <label htmlFor="login-identifier">Email</label>
+              <label htmlFor="login-email">Email</label>
 
               <input
-                id="login-identifier"
+                id="login-email"
                 type="text"
-                value={loginForm.identifier}
+                value={loginForm.email}
                 onChange={(event) =>
-                  updateLoginField("identifier", event.target.value)
+                  updateLoginField("email", event.target.value)
                 }
                 placeholder="you@example.com"
                 autoComplete="username"
-                aria-invalid={Boolean(errors.identifier)}
+                aria-invalid={Boolean(errors.email)}
                 aria-describedby={
-                  errors.identifier ? "identifier-error" : undefined
+                  errors.email ? "email-error" : undefined
                 }
-                className={errors.identifier ? "input-error" : ""}
+                className={errors.email ? "input-error" : ""}
               />
 
-              {errors.identifier && (
-                <span id="identifier-error" className="field-error">
-                  {errors.identifier}
+              {errors.email && (
+                <span id="email-error" className="field-error">
+                  {errors.email}
                 </span>
               )}
             </div>

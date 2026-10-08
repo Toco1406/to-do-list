@@ -3,7 +3,7 @@ import { createBrowserRouter, RouterProvider, redirect } from "react-router-dom"
 import LoginPage from "../pages/AuthPage.jsx";
 import TasksPage from "../pages/TasksPage.jsx";
 
-const API = "http://localhost:3000"
+const API = "http://localhost:3000/api"
 
 const checkAuth = async () => {
   try {
