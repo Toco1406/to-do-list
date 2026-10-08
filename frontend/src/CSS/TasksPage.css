@@ -926,58 +926,6 @@ body {
 }
 
 /* =====================================================
-   PRIORITY
-===================================================== */
-
-.priority {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-
-  font-size: 10px;
-  font-weight: 600;
-}
-
-.priority i {
-  width: 6px;
-  height: 6px;
-
-  border-radius: 50%;
-}
-
-.priority-low {
-  color: #6f7c89;
-}
-
-.priority-low i {
-  background: #9ca8b3;
-}
-
-.priority-medium {
-  color: #9a7a42;
-}
-
-.priority-medium i {
-  background: #d5a854;
-}
-
-.priority-high {
-  color: #b35b4f;
-}
-
-.priority-high i {
-  background: #d97567;
-}
-
-.priority-urgent {
-  color: #bd4034;
-}
-
-.priority-urgent i {
-  background: #e24e40;
-}
-
-/* =====================================================
    DUE DATE
 ===================================================== */
 
@@ -1233,10 +1181,6 @@ body {
 /* =====================================================
    VIEW MODAL
 ===================================================== */
-
-.view-header .priority {
-  margin-bottom: 7px;
-}
 
 .view-header h2 {
   margin-top: 0;

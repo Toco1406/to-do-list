@@ -53,23 +53,11 @@ const EMPTY_FORM = {
 
 export default function Tasks() {
   const [tasks, setTasks] = useState(INITIAL_TASKS);
-
-  const [activeNav, setActiveNav] = useState("Tasks");
   const [modal, setModal] = useState(null);
-
   const [form, setForm] = useState(EMPTY_FORM);
-
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
-  const [priorityFilter, setPriorityFilter] = useState("All");
   const [sortBy, setSortBy] = useState("created");
-
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-
-  /* --------------------------------------------------
-     Statistics
-  -------------------------------------------------- */
-
   const DoneTasks = tasks.filter((task) => task.status === "Done").length;
 
   const doingTasks = tasks.filter((task) => task.status === "Doing").length;
@@ -79,10 +67,6 @@ export default function Tasks() {
   const progress = tasks.length
     ? Math.round((DoneTasks / tasks.length) * 100)
     : 0;
-
-  /* --------------------------------------------------
-     Filtering + sorting
-  -------------------------------------------------- */
 
   const filteredTasks = useMemo(() => {
     const result = tasks.filter((task) => {
@@ -109,7 +93,7 @@ export default function Tasks() {
 
       return new Date(b.createdAt) - new Date(a.createdAt);
     });
-  }, [tasks, search, statusFilter, priorityFilter, sortBy]);
+  }, [tasks, search, statusFilter, sortBy]);
 
 
   const openAddModal = () => {
@@ -121,9 +105,7 @@ export default function Tasks() {
     setForm({
       title: task.title,
       details: task.details,
-      priority: task.priority,
       status: task.status,
-      dueDate: task.dueDate,
     });
 
     setModal({
