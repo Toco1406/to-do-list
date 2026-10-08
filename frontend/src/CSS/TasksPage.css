@@ -426,19 +426,6 @@
   color: var(--accent);
 }
 
-@media (hover: hover) {
-  .row-actions {
-    opacity: 0;
-    transition: opacity 0.15s;
-  }
-
-  .task-row:hover .row-actions,
-  .task-row:focus-within .row-actions {
-    opacity: 1;
-  }
-}
-
-/* ---------- État vide ---------- */
 
 .empty-state {
   display: grid;

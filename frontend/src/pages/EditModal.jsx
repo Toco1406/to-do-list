@@ -29,6 +29,7 @@ export default function EditModal({ modal, form, setForm, saveTask, onClose }) {
               })
             }
             placeholder="What needs to be done?"
+            required
           />
         </label>
 
@@ -36,11 +37,11 @@ export default function EditModal({ modal, form, setForm, saveTask, onClose }) {
           Description
           <textarea
             rows="4"
-            value={form.details}
+            value={form.description || ""} // Aligned with Mongoose schema
             onChange={(event) =>
               setForm({
                 ...form,
-                details: event.target.value,
+                description: event.target.value,
               })
             }
             placeholder="Add some details..."
@@ -61,7 +62,7 @@ export default function EditModal({ modal, form, setForm, saveTask, onClose }) {
             >
               {STATUSES.map((status) => (
                 <option key={status} value={status}>
-                  {status}
+                  {status.charAt(0).toUpperCase() + status.slice(1)}
                 </option>
               ))}
             </select>
@@ -72,11 +73,11 @@ export default function EditModal({ modal, form, setForm, saveTask, onClose }) {
           Due date
           <input
             type="date"
-            value={form.dueDate}
+            value={form.deadline || ""} // Aligned with Mongoose schema
             onChange={(event) =>
               setForm({
                 ...form,
-                dueDate: event.target.value,
+                deadline: event.target.value,
               })
             }
           />

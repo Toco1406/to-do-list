@@ -64,9 +64,6 @@ export default function ViewModal({
       </div>
 
       <div className="modal-footer">
-        <button className="danger-button" onClick={() => deleteTask(task.id)}>
-          Delete task
-        </button>
 
         <div>
           <button className="secondary-button" onClick={() => openEditModal(task)}>

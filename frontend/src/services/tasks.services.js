@@ -25,7 +25,7 @@ export async function getTaskById(taskId) {
 }
 
 export async function createTask(task) {
-  const response = await fetch(`${BASE_URL}/tasks`, {
+  const response = await fetch(`${BASE_URL}`, {
     method: "POST",
     credentials: "include",
     headers: {
@@ -40,27 +40,41 @@ export async function createTask(task) {
 }
 
 export async function updateTask(taskId, task) {
-  const response = await fetch(`${BASE_URL}/tasks/${taskId}`, {
+  const response = await fetch(`${BASE_URL}/${taskId}`, {
     method: "PATCH",
     credentials: "include",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify(task),
-  })
+  });
+
   if (!response.ok) {
-    throw new Error()
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(
+      errorData.error || `Failed to update task (${response.status})`
+    );
   }
+
   return response.json();
 }
 
-export async function deleteTask(taskId) {
-  const response = await fetch(`${BASE_URL}/tasks/${taskId}`, {
+export async function deleteTask(id) {
+  const response = await fetch(`${BASE_URL}/${id}`, {
     method: "DELETE",
     credentials: "include",
-  })
+  });
+
   if (!response.ok) {
-    throw new Error()
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(
+      errorData.error || `Failed to delete task (${response.status})`
+    );
   }
+
+  if (response.status === 204) {
+    return true;
+  }
+
   return response.json();
 }

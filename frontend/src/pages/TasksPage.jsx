@@ -1,79 +1,48 @@
 import { useEffect, useMemo, useState } from "react";
 import EditModal from "./EditModal";
 import ViewModal from "./ViewModal";
+import { MdDelete } from "react-icons/md";
+import { FaEye, FaPen } from "react-icons/fa";
+
 import "../CSS/TasksPage.css";
-import { getMyTasks } from "../services/tasks.services.js";
+import {
+  getMyTasks,
+  createTask,
+  deleteTask,
+  updateTask,
+} from "../services/tasks.services.js";
 
-export const STATUSES = ["Todo", "Doing", "Done"];
-export const PRIORITIES = ["Low", "Medium", "High", "Urgent"];
-
-const INITIAL_TASKS = [
-  {
-    id: 1,
-    title: "Buy groceries",
-    details: "Milk, eggs, bread and coffee.",
-    status: "Todo",
-  },
-  {
-    id: 2,
-    title: "Finish the report",
-    details: "Send the final version to the team before Friday.",
-    status: "Doing",
-  },
-  {
-    id: 3,
-    title: "Book dentist appointment",
-    details: "Call the clinic and choose an available time.",
-    status: "Done",
-  },
-  {
-    id: 4,
-    title: "Review project architecture",
-    details:
-      "Review the backend structure and identify potential improvements.",
-    status: "Doing",
-  },
-  {
-    id: 5,
-    title: "Update documentation",
-    details: "Add API documentation and setup instructions.",
-    status: "Todo",
-  },
-  {
-    id: 6,
-    title: "Deploy staging environment",
-    details: "Deploy the latest version to the staging server.",
-    status: "Todo",
-  },
-];
+export const STATUSES = ["todo", "doing", "done"];
 
 const EMPTY_FORM = {
   title: "",
-  details: "",
-  status: "Todo",
-  dueDate: "",
+  description: "",
+  status: "todo",
+  deadline: "",
 };
 
 export default function Tasks() {
-  const [tasks, setTasks] = useState(INITIAL_TASKS);
+  const [tasks, setTasks] = useState([]);
   const [modal, setModal] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [sortBy, setSortBy] = useState("created");
 
-  const DoneTasks = tasks.filter((task) => task.status === "Done").length;
-  const doingTasks = tasks.filter((task) => task.status === "Doing").length;
-  const todoTasks = tasks.filter((task) => task.status === "Todo").length;
+  const doneTasks = tasks.filter((task) => task.status === "done").length;
+  const doingTasks = tasks.filter((task) => task.status === "doing").length;
 
   useEffect(() => {
-    getMyTasks().then((data) => {
-      setTasks(data.items);
-    });
+    getMyTasks()
+      .then((data) => {
+        // Safely extract items array from backend response
+        setTasks(data?.items || data || []);
+      })
+      .catch((error) => console.error("Failed to load tasks:", error));
   }, []);
 
   const progress = tasks.length
-    ? Math.round((DoneTasks / tasks.length) * 100)
+    ? Math.round((doneTasks / tasks.length) * 100)
     : 0;
 
   const filteredTasks = useMemo(() => {
@@ -81,8 +50,8 @@ export default function Tasks() {
       const searchValue = search.toLowerCase();
 
       const matchesSearch =
-        task.title.toLowerCase().includes(searchValue) ||
-        (task.details && task.details.toLowerCase().includes(searchValue));
+        task.title?.toLowerCase().includes(searchValue) ||
+        task.description?.toLowerCase().includes(searchValue);
 
       const matchesStatus =
         statusFilter === "All" || task.status === statusFilter;
@@ -91,8 +60,8 @@ export default function Tasks() {
     });
 
     return [...result].sort((a, b) => {
-      if (sortBy === "dueDate") {
-        return (a.dueDate || "9999").localeCompare(b.dueDate || "9999");
+      if (sortBy === "deadline") {
+        return (a.deadline || "9999").localeCompare(b.deadline || "9999");
       }
 
       if (sortBy === "title") {
@@ -111,75 +80,82 @@ export default function Tasks() {
   const openEditModal = (task) => {
     setForm({
       title: task.title,
-      details: task.details || "",
+      description: task.description || "",
       status: task.status,
-      dueDate: task.dueDate || "",
+      deadline: task.deadline ? task.deadline.split("T")[0] : "",
     });
 
     setModal({
       type: "edit",
-      id: task.id,
+      id: task._id || task.id, // Mongoose uses '_id'
     });
   };
 
-  const saveTask = (event) => {
+  const saveTask = async (event) => {
     event.preventDefault();
 
     if (!form.title.trim()) return;
 
-    if (modal.type === "add") {
-      const newTask = {
-        id: Date.now(),
-        ...form,
+    try {
+      const payload = {
         title: form.title.trim(),
-        createdAt: new Date().toISOString().slice(0, 10),
+        description: form.description,
+        status: form.status,
+        deadline: form.deadline || null,
       };
 
-      setTasks((previous) => [newTask, ...previous]);
-    }
+      if (modal.type === "add") {
+        // 1. Backend API Call for New Task
+        const newTask = await createTask(payload);
+        setTasks((prev) => [newTask, ...prev]);
+      } else if (modal.type === "edit") {
+        // 2. Backend API Call to Update Task
+        const updatedTask = await updateTask(modal.id, payload);
 
-    if (modal.type === "edit") {
-      setTasks((previous) =>
-        previous.map((task) =>
-          task.id === modal.id
-            ? {
-                ...task,
-                ...form,
-                title: form.title.trim(),
-              }
-            : task,
-        ),
-      );
-    }
+        setTasks((prev) =>
+          prev.map((task) =>
+            (task._id || task.id) === modal.id ? updatedTask : task,
+          ),
+        );
+      }
 
-    setModal(null);
-    setForm(EMPTY_FORM);
+      setModal(null);
+      setForm(EMPTY_FORM);
+    } catch (error) {
+      console.error("Failed to save task:", error);
+      alert(error.message || "Failed to save task. Please try again.");
+    }
   };
 
-  const deleteTask = (id) => {
-    setTasks((previous) => previous.filter((task) => task.id !== id));
-    setModal(null);
+  const handleDeleteTask = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this task?")) return;
+
+    try {
+      // 1. Call backend to delete
+      await deleteTask(id);
+
+      // 2. Remove task from React state
+      setTasks((prev) => prev.filter((task) => (task._id || task.id) !== id));
+
+      // 3. Close modal if open
+      setModal(null);
+    } catch (error) {
+      console.error("Failed to delete task:", error);
+      alert(error.message || "Failed to delete task. Please try again.");
+    }
   };
 
   const updateStatus = (id, status) => {
-    setTasks((previous) =>
-      previous.map((task) =>
-        task.id === id
-          ? {
-              ...task,
-              status,
-            }
-          : task,
+    setTasks((prev) =>
+      prev.map((task) =>
+        (task._id || task.id) === id ? { ...task, status } : task,
       ),
     );
   };
 
-  const clearFilters = () => {
-    setSearch("");
-    setStatusFilter("All");
-  };
-
-  const activeTask = modal?.id ? tasks.find((t) => t.id === modal.id) : null;
+  const activeTask = modal?.id
+    ? tasks.find((t) => (t._id || t.id) === modal.id)
+    : null;
 
   return (
     <div className="dashboard">
@@ -220,7 +196,7 @@ export default function Tasks() {
               <div className="stat-icon green">✓</div>
               <div>
                 <span>Done</span>
-                <strong>{DoneTasks}</strong>
+                <strong>{doneTasks}</strong>
                 <small>{progress}% completion rate</small>
               </div>
             </div>
@@ -232,7 +208,7 @@ export default function Tasks() {
                 <span>⌕</span>
                 <input
                   value={search}
-                  onChange={(event) => setSearch(event.target.value)}
+                  onChange={(e) => setSearch(e.target.value)}
                   placeholder="Search tasks..."
                 />
                 {search && (
@@ -248,12 +224,12 @@ export default function Tasks() {
               <div className="filters">
                 <select
                   value={statusFilter}
-                  onChange={(event) => setStatusFilter(event.target.value)}
+                  onChange={(e) => setStatusFilter(e.target.value)}
                 >
                   <option value="All">All statuses</option>
                   {STATUSES.map((status) => (
                     <option key={status} value={status}>
-                      {status}
+                      {status.charAt(0).toUpperCase() + status.slice(1)}
                     </option>
                   ))}
                 </select>
@@ -267,70 +243,72 @@ export default function Tasks() {
                 <span />
               </div>
 
-              {filteredTasks.map((task) => (
-                <div
-                  className={`task-row ${task.status === "Done" ? "Done" : ""}`}
-                  key={task.id}
-                >
-                  <div className="task-main">
-                    <button
-                      className={`task-check ${
-                        task.status === "Done" ? "checked" : ""
-                      }`}
-                      onClick={() =>
-                        updateStatus(
-                          task.id,
-                          task.status === "Done" ? "Todo" : "Done",
-                        )
-                      }
-                    >
-                      {task.status === "Done" && "✓"}
-                    </button>
+              {filteredTasks.map((task) => {
+                const taskId = task._id || task.id;
+                const isDone = task.status === "done";
 
-                    <div className="task-information">
-                      <strong>{task.title}</strong>
-                      {task.details && <span>{task.details}</span>}
+                return (
+                  <div
+                    className={`task-row ${isDone ? "Done" : ""}`}
+                    key={taskId}
+                  >
+                    <div className="task-main">
+                      <button
+                        className={`task-check ${isDone ? "checked" : ""}`}
+                        onClick={() =>
+                          updateStatus(taskId, isDone ? "todo" : "done")
+                        }
+                      >
+                        {isDone && "✓"}
+                      </button>
+
+                      <div className="task-information">
+                        <strong>{task.title}</strong>
+                        {task.description && <span>{task.description}</span>}
+                      </div>
+                    </div>
+
+                    <div>
+                      <select
+                        className={`status-select status-${task.status}`}
+                        value={task.status}
+                        onChange={(e) => updateStatus(taskId, e.target.value)}
+                      >
+                        {STATUSES.map((status) => (
+                          <option key={status} value={status}>
+                            {status.charAt(0).toUpperCase() + status.slice(1)}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="row-actions">
+                      <button
+                        onClick={() => setModal({ type: "view", id: taskId })}
+                        title="View task"
+                      >
+                        <FaEye />
+                      </button>
+
+                      <button
+                        onClick={() => openEditModal(task)}
+                        title="Edit task"
+                      >
+                        <FaPen />
+                      </button>
+
+                      {/* New Delete Button */}
+                      <button
+                        className="delete-button"
+                        onClick={() => handleDeleteTask(taskId)}
+                        title="Delete"
+                      >
+                        <MdDelete />
+                      </button>
                     </div>
                   </div>
-
-                  <div>
-                    <select
-                      className={`status-select status-${task.status.toLowerCase()}`}
-                      value={task.status}
-                      onChange={(event) =>
-                        updateStatus(task.id, event.target.value)
-                      }
-                    >
-                      {STATUSES.map((status) => (
-                        <option key={status} value={status}>
-                          {status}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="row-actions">
-                    <button
-                      onClick={() =>
-                        setModal({
-                          type: "view",
-                          id: task.id,
-                        })
-                      }
-                      title="View task"
-                    >
-                      View
-                    </button>
-
-                    <button
-                      onClick={() => openEditModal(task)}
-                      title="Edit task"
-                    >
-                      Edit
-                    </button>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
 
               {filteredTasks.length === 0 && (
                 <div className="empty-state">
@@ -349,10 +327,7 @@ export default function Tasks() {
 
       {modal && (
         <div className="modal-overlay" onClick={() => setModal(null)}>
-          <div
-            className="task-modal"
-            onClick={(event) => event.stopPropagation()}
-          >
+          <div className="task-modal" onClick={(e) => e.stopPropagation()}>
             {(modal.type === "add" || modal.type === "edit") && (
               <EditModal
                 modal={modal}
