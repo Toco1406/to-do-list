@@ -91,10 +91,6 @@ function AuthCard() {
   const validateRegister = () => {
     const newErrors = {};
 
-    if (!registerForm.fullName.trim()) {
-      newErrors.fullName = "Full name is required.";
-    }
-
     if (!registerForm.email.trim()) {
       newErrors.email = "Email is required.";
     } else if (!EMAIL_REGEX.test(registerForm.email)) {
@@ -111,10 +107,6 @@ function AuthCard() {
       newErrors.confirmPassword = "Please confirm your password.";
     } else if (registerForm.password !== registerForm.confirmPassword) {
       newErrors.confirmPassword = "Passwords do not match.";
-    }
-
-    if (!registerForm.terms) {
-      newErrors.terms = "You must accept the Terms & Conditions.";
     }
 
     return newErrors;

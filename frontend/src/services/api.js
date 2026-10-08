@@ -3,6 +3,7 @@ const BASE_URL = "http://localhost:3000/api"
 export function authRegister(registerForm) {
   return fetch(`${BASE_URL}/auth/register`, {
     method: "POST",
+    credentials: 'include',
     headers: {
       "Content-Type": "application/json"
     },
@@ -14,6 +15,7 @@ export function authLogin(loginForm) {
   console.log(loginForm)
   return fetch(`${BASE_URL}/auth/login`, {
     method: "POST",
+    credentials: 'include',
     headers: {
       "Content-Type": "application/json"
     },
