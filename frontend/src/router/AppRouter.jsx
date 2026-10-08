@@ -1,45 +1,26 @@
 import React from "react";
-import {
-  createBrowserRouter,
-  RouterProvider,
-  Navigate,
-  Outlet,
-} from "react-router-dom";
+import { createBrowserRouter, RouterProvider, redirect } from "react-router-dom";
 import LoginPage from "../pages/AuthPage.jsx";
 import TasksPage from "../pages/TasksPage.jsx";
 
-const isAuthenticated = () => {
-  const token = localStorage.getItem("token");
-  if (!token) return false;
+const API = 'http://localhost:3000'
+
+const checkAuth = async () => {
   try {
-    const payload = JSON.parse(atob(token.split(".")[1]));
-    if (payload.exp * 1000 < Date.now()) {
-      localStorage.removeItem("token");
-      return false;
-    }
-    return true;
+    const res = await fetch(`${API}/auth/me`, { credentials: "include" });
+    return res.ok;
   } catch {
-    localStorage.removeItem("token");
     return false;
   }
 };
 
-const ProtectedRoute = () =>
-  isAuthenticated() ? <Outlet /> : <Navigate to="/auth" replace />;
-
-const PublicOnlyRoute = () =>
-  isAuthenticated() ? <Navigate to="/tasks" replace /> : <Outlet />;
+const protectedLoader = async () => ((await checkAuth()) ? null : redirect("/auth"));
+const publicOnlyLoader = async () => ((await checkAuth()) ? redirect("/tasks") : null);
 
 const router = createBrowserRouter([
-  {
-    element: <PublicOnlyRoute />,
-    children: [{ path: "/auth", element: <LoginPage /> }],
-  },
-  {
-    element: <ProtectedRoute />,
-    children: [{ path: "/tasks", element: <TasksPage /> }],
-  },
-  { path: "*", element: <Navigate to="/tasks" replace /> },
+  { path: "/auth", loader: publicOnlyLoader, element: <LoginPage /> },
+  { path: "/tasks", loader: protectedLoader, element: <TasksPage /> },
+  { path: "*", loader: () => redirect("/tasks") },
 ]);
 
 const AppRouter = () => <RouterProvider router={router} />;

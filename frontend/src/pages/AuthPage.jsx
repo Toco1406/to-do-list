@@ -4,14 +4,12 @@ import "../CSS/AuthCard.css";
 const INITIAL_LOGIN = {
   identifier: "",
   password: "",
-  rememberMe: false,
 };
 
 const INITIAL_REGISTER = {
   email: "",
   password: "",
   confirmPassword: "",
-  terms: false,
 };
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -39,7 +37,6 @@ function AuthCard() {
       [field]: value,
     }));
 
-    // Remove the field error as the user corrects it.
     setErrors((previous) => ({
       ...previous,
       [field]: "",
@@ -161,29 +158,6 @@ function AuthCard() {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleForgotPassword = (event) => {
-    event.preventDefault();
-
-    if (!loginForm.identifier.trim()) {
-      setErrors({
-        identifier: "Enter your email address first.",
-      });
-      return;
-    }
-
-    if (!EMAIL_REGEX.test(loginForm.identifier)) {
-      setErrors({
-        identifier: "Enter a valid email address to reset your password.",
-      });
-      return;
-    }
-
-    setFeedback({
-      type: "success",
-      message: "If an account exists, a password reset link will be sent.",
-    });
   };
 
   return (
@@ -310,27 +284,6 @@ function AuthCard() {
                   {errors.password}
                 </span>
               )}
-            </div>
-
-            <div className="form-options">
-              <label className="checkbox-label">
-                <input
-                  type="checkbox"
-                  checked={loginForm.rememberMe}
-                  onChange={(event) =>
-                    updateLoginField("rememberMe", event.target.checked)
-                  }
-                />
-                <span>Remember me</span>
-              </label>
-
-              <button
-                type="button"
-                className="text-button"
-                onClick={handleForgotPassword}
-              >
-                Forgot Password?
-              </button>
             </div>
 
             <button
